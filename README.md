@@ -249,7 +249,7 @@ You can use this file as follows (see also the `__main__` function there):
     from pathlib import Path
     # adjust csv paths if you don't run this script from the `scripts` folder
 
-    sequences_path_ = Path('../dataset')  # path where you download and unzipped the keypoints
+    sequences_path_ = Path('../yolo_dataset')  # path where you download and unzipped the keypoints
     df_ = pd.read_csv(Path('../annotations/sequences.csv'))
 
     train_df = pd.read_csv('../annotations/sequences_train.csv')

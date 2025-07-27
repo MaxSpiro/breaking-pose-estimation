@@ -1,2 +1,6 @@
-dataset/**
+yolo_dataset/**
 manual_keypoints/**
+.idea
+ffmpeg
+dataset/**
+videos/**

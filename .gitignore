@@ -4,3 +4,5 @@ manual_keypoints/**
 ffmpeg
 dataset/**
 videos/**
+**/.DS_Store
+.DS_Store

@@ -1,54 +1,118 @@
 import cv2
-import matplotlib.pyplot as plt
-import random
 from pathlib import Path
 from PIL import Image
 import numpy as np
+import random
+import subprocess
 
-all_files = [f for f in Path('../yolo_dataset/images').iterdir()]
-image_path = random.choice(all_files)
-label_path = Path(f'../yolo_dataset/labels/{image_path.stem}.txt')
-print(image_path)
-print(label_path)
+# Constants
+INPUT_IMAGES = Path("../yolo_dataset/images")
+INPUT_LABELS = Path("../yolo_dataset/labels")
+OUTPUT_DIR = Path("../vis")
+subprocess.run(["rm", "-rf", OUTPUT_DIR])
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-img_pil = Image.open(image_path).convert('RGB')
-img = np.array(img_pil)
-img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+NUM_SAMPLES = 1000
 
-img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-height, width, _ = img.shape
+CLASS_NAMES = ["toprock", "footwork", "powermove"]
 
-# Read the label file
-with open(label_path, 'r') as f:
-    lines = f.readlines()
+# Ultralytics-style color palettes
+CLASS_COLORS = [(255, 56, 56), (72, 249, 10), (146, 204, 23)]
+KEYPOINT_COLORS = [
+    (255, 0, 0),
+    (255, 85, 0),
+    (255, 170, 0),
+    (255, 255, 0),
+    (170, 255, 0),
+    (85, 255, 0),
+    (0, 255, 0),
+    (0, 255, 85),
+    (0, 255, 170),
+    (0, 255, 255),
+    (0, 170, 255),
+    (0, 85, 255),
+    (0, 0, 255),
+    (85, 0, 255),
+    (170, 0, 255),
+    (255, 0, 255),
+    (255, 0, 170),
+]
 
-for line in lines:
-    parts = line.strip().split()
-    class_id = int(parts[0])
-    bbox = list(map(float, parts[1:5]))
-    keypoints = list(map(float, parts[5:]))
+# Random image selection
+all_images = list(INPUT_IMAGES.glob("*.png"))
+all_images.sort()
+selected_images = all_images[:NUM_SAMPLES]
 
-    # Convert bbox to pixel coords
-    x_center, y_center, w, h = bbox
-    x_center *= width
-    y_center *= height
-    w *= width
-    h *= height
+for image_path in selected_images:
+    label_path = INPUT_LABELS / f"{image_path.stem}.txt"
+    if not label_path.exists():
+        print(f"Label not found for {image_path.stem}")
+        continue
 
-    x1 = int(x_center - w / 2)
-    y1 = int(y_center - h / 2)
-    x2 = int(x_center + w / 2)
-    y2 = int(y_center + h / 2)
+    img_pil = Image.open(image_path).convert("RGB")
+    img = np.array(img_pil)
+    height, width, _ = img.shape
 
-    # Draw bounding box
-    cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+    draw_img = img.copy()
 
-    # Draw keypoints
-    for i in range(0, len(keypoints), 2):
-        kp_x = int(keypoints[i] * width)
-        kp_y = int(keypoints[i+1] * height)
-        cv2.circle(img, (kp_x, kp_y), radius=3, color=(255, 0, 0), thickness=-1)
+    with open(label_path, "r") as f:
+        lines = f.readlines()
 
-plt.imshow(img)
-plt.axis('off')
-plt.show()
+    for line in lines:
+        parts = line.strip().split()
+        class_id = int(parts[0])
+        bbox = list(map(float, parts[1:5]))
+        keypoints = list(map(float, parts[5:]))
+
+        # Convert bbox to pixel coordinates
+        x_center, y_center, w, h = bbox
+        x_center *= width
+        y_center *= height
+        w *= width
+        h *= height
+        x1 = int(x_center - w / 2)
+        y1 = int(y_center - h / 2)
+        x2 = int(x_center + w / 2)
+        y2 = int(y_center + h / 2)
+
+        # Draw bounding box
+        box_color = CLASS_COLORS[class_id]
+        cv2.rectangle(draw_img, (x1, y1), (x2, y2), box_color, 2)
+
+        # Draw class name
+        label = (
+            CLASS_NAMES[class_id]
+            if class_id < len(CLASS_NAMES)
+            else f"class {class_id}"
+        )
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        text_size = cv2.getTextSize(label, font, 0.5, 1)[0]
+        text_origin = (x1, max(y1 - 4, text_size[1] + 4))
+        cv2.rectangle(
+            draw_img,
+            (x1, y1 - text_size[1] - 8),
+            (x1 + text_size[0], y1),
+            box_color,
+            -1,
+        )
+        cv2.putText(
+            draw_img, label, (x1, y1 - 4), font, 0.5, (255, 255, 255), 1, cv2.LINE_AA
+        )
+
+        # Draw keypoints (assuming format: x1 y1 x2 y2 ...)
+        points = []
+        for i in range(0, len(keypoints), 2):
+            x = int(keypoints[i] * width)
+            y = int(keypoints[i + 1] * height)
+            cv2.circle(
+                draw_img,
+                (x, y),
+                9,
+                KEYPOINT_COLORS[(i // 2) % len(KEYPOINT_COLORS)],
+                -1,
+            )
+            points.append((x, y))
+
+    # Save visualization
+    output_path = OUTPUT_DIR / image_path.name
+    cv2.imwrite(str(output_path), cv2.cvtColor(draw_img, cv2.COLOR_RGB2BGR))

@@ -1,5 +1,7 @@
 import csv
 import subprocess
+from pathlib import Path
+Path('../videos').mkdir(exist_ok=True)
 
 # Uses yt-dlp and ffmpeg
 if __name__ == '__main__':
@@ -10,5 +12,12 @@ if __name__ == '__main__':
                 continue
             video_id = row[0]
             link = row[1]
-            ytdl_command = ['yt-dlp', link, '-f bestvideo[ext=mp4]', f'-o videos/{video_id}.%(ext)s']
+            ytdl_command = [
+                'yt-dlp',
+                '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]',
+                '-o', '../videos/%(id)s.%(ext)s',
+                '--ffmpeg-location', './ffmpeg',
+                link
+            ]
             subprocess.run(ytdl_command)
+            break

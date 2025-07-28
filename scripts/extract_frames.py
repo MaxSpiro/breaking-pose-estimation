@@ -1,7 +1,7 @@
 from pathlib import Path
 import subprocess
 
-IMAGES_DIR = Path("../yolo_dataset/images_temp")
+IMAGES_DIR = Path("../yolo_dataset/images")
 IMAGES_DIR.mkdir(exist_ok=True)
 LABELS_DIR = Path("../yolo_dataset/labels")
 VIDEOS_DIR = Path("../videos")
@@ -35,4 +35,3 @@ def extract_frames(video_path: Path):
 if __name__ == "__main__":
     for video in VIDEOS_DIR.iterdir():
         extract_frames(video)
-        break

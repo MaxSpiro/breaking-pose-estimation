@@ -3,13 +3,12 @@ from pathlib import Path
 from PIL import Image
 import numpy as np
 import random
-import subprocess
 
 # Constants
 INPUT_IMAGES = Path("../yolo_dataset/images")
 INPUT_LABELS = Path("../yolo_dataset/labels")
-OUTPUT_DIR = Path("../vis")
-subprocess.run(["rm", "-rf", OUTPUT_DIR])
+OUTPUT_DIR = Path("../visualize")
+# subprocess.run(["rm", "-rf", OUTPUT_DIR])
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 NUM_SAMPLES = 1000
@@ -40,7 +39,7 @@ KEYPOINT_COLORS = [
 
 # Random image selection
 all_images = list(INPUT_IMAGES.glob("*.png"))
-all_images.sort()
+random.shuffle(all_images)
 selected_images = all_images[:NUM_SAMPLES]
 
 for image_path in selected_images:

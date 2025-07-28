@@ -1,29 +1,38 @@
 from pathlib import Path
 import subprocess
-from collections import defaultdict
 
-labels_dir = Path("../yolo_dataset/labels")
-images_dir = Path("../yolo_dataset/images")
-videos_dir = Path("../videos")
+IMAGES_DIR = Path("../yolo_dataset/images_temp")
+IMAGES_DIR.mkdir(exist_ok=True)
+LABELS_DIR = Path("../yolo_dataset/labels")
+VIDEOS_DIR = Path("../videos")
 
-video_to_frames = defaultdict(set)
 
-for label_path in labels_dir.iterdir():
-    video_id, frame_num = label_path.stem.rsplit("-", 1)
-    output_path = images_dir / f"{video_id}-{frame_num}.png"
-    if not output_path.exists():
-        video_to_frames[video_id].add(frame_num)
-
-for video_id, frame_nums in video_to_frames.items():
-    input_video = videos_dir / f"{video_id}.mp4"
-    if not input_video.exists():
-        print(f"Video {video_id} not found.")
-        continue
+def extract_frames(video_path: Path):
+    video_id = video_path.stem
+    with open("highest_frames.txt", "r") as highest_frames:
+        for line in highest_frames.readlines():
+            video_id, max_frame = line.strip().rsplit(":", 1)
+            max_frame = int(max_frame.strip()) + 10
+    print(f"Extracting {max_frame} frames from {video_id}")
     subprocess.run(
         [
             "./ffmpeg",
             "-i",
-            str(input_video),
-            str(images_dir / f"{video_id}-%d.png"),
+            str(video_path),
+            "-vframes",
+            str(max_frame or 12000),
+            str(IMAGES_DIR / f"{video_id}-%06d.png"),
         ]
     )
+    # remove unnecessary frames
+    for image_path in Path(IMAGES_DIR).glob(f"{video_id}*.png"):
+        if not Path(f"{LABELS_DIR}/{image_path.stem}.txt").exists():
+            image_path.unlink()
+    print("Extracted frames for " + video_id)
+    video_path.unlink()
+
+
+if __name__ == "__main__":
+    for video in VIDEOS_DIR.iterdir():
+        extract_frames(video)
+        break

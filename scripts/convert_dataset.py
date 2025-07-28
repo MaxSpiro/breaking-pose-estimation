@@ -24,8 +24,6 @@ if __name__ == "__main__":
     for path in Path("../manual_keypoints").rglob("*.npz"):
         keypoints = np.load(path)["coco_joints2d"][:, :2]
         _, _, year, video_id, img_id = str(path).rsplit(".", 1)[0].split("/")
-        if video_id != "k1RTNQxNt6Q":
-            continue
         frame_num = img_id.split("-")[1]
         for data_path in Path(f"../dataset/{year}/{video_id}").rglob("*.json"):
             _, frame_range, classname_and_ending = str(data_path).rsplit("_", 2)

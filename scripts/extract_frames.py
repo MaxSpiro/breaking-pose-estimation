@@ -1,9 +1,9 @@
 from pathlib import Path
 import subprocess
 
-IMAGES_DIR = Path("../yolo_dataset/images")
+IMAGES_DIR = Path("../dataset/images")
 IMAGES_DIR.mkdir(exist_ok=True)
-LABELS_DIR = Path("../yolo_dataset/labels")
+LABELS_DIR = Path("../dataset/labels")
 VIDEOS_DIR = Path("../videos")
 
 
@@ -19,6 +19,8 @@ def extract_frames(video_path: Path):
             "./ffmpeg",
             "-i",
             str(video_path),
+            "-vf",
+            "scale=640:360",
             "-vframes",
             str(max_frame or 12000),
             str(IMAGES_DIR / f"{video_id}-%06d.png"),

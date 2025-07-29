@@ -1,10 +1,9 @@
-yolo_dataset/**
-manual_keypoints/**
 .idea
 ffmpeg
 dataset/**
-videos/**
 **/.DS_Store
 .DS_Store
-vis
+videos/**
 videos
+.env
+all_labels

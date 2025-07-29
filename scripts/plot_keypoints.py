@@ -5,8 +5,8 @@ import numpy as np
 import random
 
 # Constants
-INPUT_IMAGES = Path("../yolo_dataset/images")
-INPUT_LABELS = Path("../yolo_dataset/labels")
+INPUT_IMAGES = Path("../dataset/images")
+INPUT_LABELS = Path("../dataset/labels")
 OUTPUT_DIR = Path("../visualize")
 # subprocess.run(["rm", "-rf", OUTPUT_DIR])
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
